@@ -1,0 +1,53 @@
+{
+  "name": "me-vs-claude",
+  "version": "0.1.0",
+  "description": "Turn your GitHub commit history and Claude Code usage into a playful \"am I getting my money's worth?\" section for your website. Zero-dependency collector CLI + a themeable React component.",
+  "keywords": [
+    "claude",
+    "claude-code",
+    "github",
+    "contributions",
+    "usage",
+    "stats",
+    "portfolio",
+    "react"
+  ],
+  "license": "MIT",
+  "author": "William Lo (@willishiptoday)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/willishiptoday/me-vs-claude"
+  },
+  "type": "module",
+  "bin": {
+    "me-vs-claude": "bin/collect.mjs"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/collector/index.d.ts",
+      "default": "./src/collector/index.mjs"
+    },
+    "./react": {
+      "types": "./src/react/index.tsx",
+      "default": "./src/react/index.tsx"
+    },
+    "./collector": "./src/collector/index.mjs"
+  },
+  "files": [
+    "bin",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  }
+}
