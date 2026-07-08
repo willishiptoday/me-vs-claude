@@ -32,17 +32,18 @@ export function CommitWall({ github }: { github: GithubStats }) {
     <div className="mvc-block">
       <p className="mvc-kicker">The commit wall · @{github.login}</p>
       <p className="mvc-lead">
-        <span className="mvc-big">{intl(github.totalContributions)}</span> contributions in the last year.{" "}
+        The handle is <span className="mvc-big">@{github.login}</span>, so I have to mean it.{" "}
+        <span className="mvc-big">{intl(github.totalContributions)}</span> contributions this year
         {github.currentStreak > 0 ? (
           <>
-            On a <span className="mvc-big">{github.currentStreak}</span>-day streak
+            , <span className="mvc-big">{github.currentStreak}</span> days in a row
             {github.longestStreak > github.currentStreak ? (
-              <span className="mvc-sub"> (best: {github.longestStreak})</span>
+              <span className="mvc-sub"> (best run: {github.longestStreak})</span>
             ) : null}
             .
           </>
         ) : (
-          <span className="mvc-sub">Streak&apos;s cold right now.</span>
+          <span className="mvc-sub"> — streak&apos;s cold right now, don&apos;t look.</span>
         )}
       </p>
 

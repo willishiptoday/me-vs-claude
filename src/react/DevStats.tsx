@@ -3,7 +3,7 @@ import type { DevStatsData } from "../types";
 import { CSS } from "./styles";
 import { CommitWall } from "./CommitWall";
 import { MeVsClaude } from "./MeVsClaude";
-import { StatsStrip } from "./StatsStrip";
+import { Receipt } from "./Receipt";
 import { longDate } from "./format";
 
 export interface DevStatsProps {
@@ -11,34 +11,37 @@ export interface DevStatsProps {
   /** Extra class on the root (the host maps its theme tokens onto --mvc-* here). */
   className?: string;
   style?: React.CSSProperties;
-  /** Link shown in the footer for the "how this works" tell. */
+  /** Rendered at the top, inside the themed container (e.g. a ThemePicker). */
+  header?: React.ReactNode;
+  /** Link shown in the footer for the "how it works" tell. */
   repoUrl?: string;
   /** Hide the auto-generated footer note. */
   hideFooter?: boolean;
 }
 
 /**
- * <DevStats/> — renders a GitHub commit wall, a "Me vs Claude" ROI scoreboard, and a Claude
- * Code usage strip from a DevStatsData object produced by the me-vs-claude collector.
+ * <DevStats/> — a GitHub commit wall, a "Me vs Claude" 5-hour-war scoreboard, and a paper
+ * receipt of Claude Code usage, rendered from a DevStatsData object.
  *
- * Self-contained styling: theme it by setting the --mvc-* CSS variables on `className`.
+ * Self-contained styling: theme it by setting the --mvc-* CSS variables on `style`/`className`.
  */
-export function DevStats({ data, className, style, repoUrl, hideFooter }: DevStatsProps) {
+export function DevStats({ data, className, style, header, repoUrl, hideFooter }: DevStatsProps) {
   const { github, claude, scoreboard } = data;
   return (
     <div className={className ? `mvc ${className}` : "mvc"} style={style}>
       <style>{CSS}</style>
 
+      {header}
       {github ? <CommitWall github={github} /> : null}
-      <MeVsClaude claude={claude} scoreboard={scoreboard} />
-      {claude ? <StatsStrip claude={claude} /> : null}
+      <MeVsClaude scoreboard={scoreboard} />
+      {claude ? <Receipt claude={claude} scoreboard={scoreboard} /> : null}
 
       {!hideFooter ? (
         <p className="mvc-foot">
           Auto-updated {longDate(data.generatedAt)} from my own GitHub + Claude Code logs — the numbers are real, the
           smugness is optional.{" "}
           {repoUrl ? (
-            <a href={repoUrl} target="_blank" rel="noreferrer" style={{ color: "inherit" }}>
+            <a href={repoUrl} target="_blank" rel="noreferrer">
               how it works ↗
             </a>
           ) : null}

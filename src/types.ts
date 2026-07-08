@@ -40,13 +40,23 @@ export interface Scoreboard {
   weeklyLimitHits: number;
   /** Times a per-model credit pool (e.g. Fable 5) was exhausted. */
   modelCreditHits: number;
+  /** Total 5-hour rolling windows elapsed since subscribing — the max I could have maxed out. */
+  possibleFiveHourWindows: number;
   subscriptionPlan: string;
   subscriptionMonthlyUsd: number;
   subscribedSince: string | null;
   monthsSubscribed: number;
   /** subscriptionMonthlyUsd × monthsSubscribed. */
   subscriptionSpendUsd: number;
-  /** estimatedApiCostUsd ÷ subscriptionSpendUsd. */
+  /** API-equivalent value from retained logs only. */
+  retainedApiCostUsd: number;
+  /** retainedApiCostUsd projected across the full subscription (accounts for pruned logs). */
+  lifetimeValueUsd: number;
+  /** fullSpan ÷ retainedSpan; >1 when logs were pruned. */
+  projectionFactor: number;
+  /** True when lifetimeValueUsd is a projection past the retained window. */
+  estimated: boolean;
+  /** lifetimeValueUsd ÷ subscriptionSpendUsd. */
   roiMultiple: number;
 }
 

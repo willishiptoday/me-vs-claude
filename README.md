@@ -2,7 +2,7 @@
 
 > Turn your GitHub commit history and Claude Code usage into a playful **"am I getting my money's worth?"** section for your website.
 
-You pay Claude a flat monthly fee. The only way to win is to drain every drop of compute before it taps you out. `me-vs-claude` reads your **local Claude Code logs** and your **GitHub contributions**, then renders a scoreboard: a contribution wall, a "Me vs Claude" ROI bar (dollar value of tokens you burned vs. what you paid), and every time you hit the 5-hour limit — proof you squeezed the plan dry.
+You pay Claude a flat monthly fee. The only way to win is to drain every drop of compute before it taps you out. `me-vs-claude` reads your **local Claude Code logs** and your **GitHub contributions**, then renders a scoreboard: a contribution wall, a "Me vs Claude" 5-hour war (how many rolling windows you *could* have maxed out vs. actually did), and an itemized **paper receipt** of what Claude would've billed you at pay-as-you-go rates — proof the flat fee works for you, not Claude. Visitors can recolor the whole thing with a built-in accent picker.
 
 It's two pieces you can use together or separately:
 
@@ -99,9 +99,7 @@ The component is monochrome by default and driven entirely by CSS variables. Map
     "--mvc-muted": "var(--muted-foreground)",
     "--mvc-border": "var(--border)",
     "--mvc-surface": "var(--muted)",
-    "--mvc-accent": "var(--foreground)", // heatmap + model-split intensity
-    "--mvc-win": "var(--foreground)",    // "me" side of the versus bar
-    "--mvc-lose": "var(--muted)",        // Claude's side
+    "--mvc-accent": "#d97757", // heatmap intensity, war bar, receipt stamp
     "--mvc-mono": "var(--font-mono)",
     "--mvc-radius": "0.625rem",
   } as React.CSSProperties}
@@ -113,25 +111,37 @@ The component is monochrome by default and driven entirely by CSS variables. Map
 | `--mvc-ink` | `currentColor` | Primary text |
 | `--mvc-muted` | 55% ink | Secondary text, labels |
 | `--mvc-border` | 16% ink | Borders, cell outlines |
-| `--mvc-surface` | 4% ink | Empty heatmap cells |
-| `--mvc-accent` | `currentColor` | Heatmap + model-split intensity |
-| `--mvc-win` / `--mvc-lose` | ink / 22% ink | Versus-bar fill / remainder |
+| `--mvc-surface` | 4% ink | Empty heatmap cells, war-bar track |
+| `--mvc-accent` | `currentColor` | Heatmap intensity, war-bar fill, receipt accents |
 | `--mvc-mono` | system mono | Numerals |
 | `--mvc-radius` | `12px` | Corner rounding |
 
-Light/dark mode "just works" if your tokens do. Everything respects `prefers-reduced-motion`.
+Light/dark mode "just works" if your tokens do. The receipt is always warm paper on purpose, so it pops in dark mode. Everything respects `prefers-reduced-motion`.
 
-### Props
+### Let visitors pick the accent
+
+Use `<DevStatsThemed>` instead of `<DevStats>` for a built-in color picker (remembers the choice in `localStorage`):
+
+```tsx
+import { DevStatsThemed } from "me-vs-claude/react";
+
+<DevStatsThemed data={data} style={{ /* --mvc-* base tokens */ }} />
+```
+
+Pass your own palette via `accents={[{ name: "Teal", value: "#14b8a6" }, …]}` (an empty `value` means monochrome).
+
+### Props (`DevStats`)
 
 | Prop | Type | |
 | --- | --- | --- |
 | `data` | `DevStatsData` | **required** — collector output |
 | `className` | `string` | extra class on the root |
 | `style` | `CSSProperties` | theme variables live here |
+| `header` | `ReactNode` | rendered at the top, inside the themed container |
 | `repoUrl` | `string` | link in the footer "how it works" tell |
 | `hideFooter` | `boolean` | drop the auto-generated footer |
 
-Subcomponents are exported too if you want to compose your own layout: `CommitWall`, `MeVsClaude`, `StatsStrip`.
+Subcomponents are exported too if you want to compose your own layout: `CommitWall`, `MeVsClaude`, `Receipt`, `ThemePicker`.
 
 ---
 
@@ -193,9 +203,14 @@ interface DevStatsData {
   } | null;
   scoreboard: {
     fiveHourLimitHits: number; weeklyLimitHits: number; modelCreditHits: number;
+    possibleFiveHourWindows: number;              // rolling windows elapsed since subscribing
     subscriptionPlan: string; subscriptionMonthlyUsd: number;
     subscribedSince: string | null; monthsSubscribed: number;
-    subscriptionSpendUsd: number; roiMultiple: number;
+    subscriptionSpendUsd: number;
+    retainedApiCostUsd: number;                   // value from retained logs only
+    lifetimeValueUsd: number;                     // projected across the full subscription
+    projectionFactor: number; estimated: boolean; // >1 / true when logs were pruned
+    roiMultiple: number;                          // lifetimeValueUsd ÷ subscriptionSpendUsd
   };
 }
 ```

@@ -68,11 +68,27 @@ export function collect(opts) {
   const ledger = mergeLedger(opts.ledger, limitWindows);
 
   // --- Scoreboard / ROI ---
+  const DAY = 86400000;
   const subscribedSince = manual.subscribedSince || (claude && claude.firstDay) || null;
   const monthsSubscribed = monthsBetween(subscribedSince, now);
   const subscriptionSpendUsd = manual.subscriptionMonthlyUsd * monthsSubscribed;
-  const estimatedApiCostUsd = (claude && claude.estimatedApiCostUsd) || 0;
-  const roiMultiple = subscriptionSpendUsd > 0 ? estimatedApiCostUsd / subscriptionSpendUsd : 0;
+
+  // Claude logs get pruned, so retained data may cover less than the full subscription.
+  // Project the retained daily average across the full span to estimate lost history.
+  const subStart = subscribedSince ? new Date(subscribedSince + "T00:00:00Z") : now;
+  const firstLog = claude && claude.firstDay ? new Date(claude.firstDay + "T00:00:00Z") : subStart;
+  const fullSpanDays = Math.max(1, (now - subStart) / DAY);
+  const retainedSpanDays = Math.max(1, (now - firstLog) / DAY);
+  const projectionFactor = Math.max(1, fullSpanDays / retainedSpanDays);
+  const estimated = projectionFactor > 1.05;
+
+  const retainedApiCostUsd = (claude && claude.estimatedApiCostUsd) || 0;
+  const lifetimeValueUsd = retainedApiCostUsd * projectionFactor;
+  const roiMultiple = subscriptionSpendUsd > 0 ? lifetimeValueUsd / subscriptionSpendUsd : 0;
+
+  // 5-hour rolling windows: how many have elapsed (the ceiling I could have maxed out)
+  // vs how many I actually drained (from the ledger).
+  const possibleFiveHourWindows = Math.max(1, Math.floor((now - subStart) / (5 * 3600 * 1000)));
 
   const data = {
     generatedAt: now.toISOString(),
@@ -82,11 +98,16 @@ export function collect(opts) {
       fiveHourLimitHits: ledger.fiveHour.length,
       weeklyLimitHits: ledger.weekly.length,
       modelCreditHits: ledger.modelCredit.length,
+      possibleFiveHourWindows,
       subscriptionPlan: manual.subscriptionPlan,
       subscriptionMonthlyUsd: manual.subscriptionMonthlyUsd,
       subscribedSince,
       monthsSubscribed,
       subscriptionSpendUsd,
+      retainedApiCostUsd,
+      lifetimeValueUsd,
+      projectionFactor,
+      estimated,
       roiMultiple,
     },
   };
