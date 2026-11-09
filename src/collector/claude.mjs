@@ -1,4 +1,4 @@
-// Parse local Claude Code session logs (~/.claude/projects/**/*.jsonl) into aggregate
+// Parse preserved local Claude Code session logs into aggregate
 // usage stats and limit-hit events.
 //
 // PRIVACY: this reads only token-usage numbers, model ids, timestamps, and the text of
@@ -31,7 +31,7 @@ const MODEL_CREDIT_RE = /reached your (.+?) limit/i;
 
 /**
  * @param {Object} [opts]
- * @param {string} [opts.claudeDir]  defaults to ~/.claude
+ * @param {string} [opts.claudeDir]  defaults to the preserved history, then ~/.claude
  * @returns {{
  *   totalTokens:number, inputTokens:number, outputTokens:number,
  *   cacheReadTokens:number, cacheWriteTokens:number, estimatedApiCostUsd:number,
@@ -42,7 +42,12 @@ const MODEL_CREDIT_RE = /reached your (.+?) limit/i;
  * }}
  */
 export function collectClaude(opts = {}) {
-  const claudeDir = opts.claudeDir || path.join(os.homedir(), ".claude");
+  const preservedDir = path.join(os.homedir(), ".agents", "chatgpt-history");
+  const claudeDir =
+    opts.claudeDir ||
+    (fs.existsSync(path.join(preservedDir, "projects"))
+      ? preservedDir
+      : path.join(os.homedir(), ".claude"));
   const projectsDir = path.join(claudeDir, "projects");
   const files = walkJsonl(projectsDir);
 

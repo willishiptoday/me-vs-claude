@@ -49,7 +49,9 @@ npx me-vs-claude collect \
 | `--out <path>` | `./dev-stats.json` | Where to write the stats JSON (commit this). |
 | `--ledger <path>` | `./me-vs-claude-ledger.json` | Append-only limit-hit ledger (commit this). |
 | `--manual <path>` | — | Your plan price / name / start date (see below). |
-| `--claude-dir <path>` | `~/.claude` | Override the Claude Code data directory. |
+| `--claude-dir <path>` | Preserved history, then `~/.claude` | Override the local session-data directory. |
+
+The collector first checks `~/.agents/chatgpt-history/projects` for migrated history and falls back to `~/.claude/projects` for existing installations. An explicit `--claude-dir` overrides both.
 
 `--manual` points at a tiny JSON file with the only things that can't be auto-derived:
 
